@@ -396,5 +396,16 @@ namespace DynamicWorkflow.Prototype
                 database.QueuesLock.ExitReadLock();
             }
         }
+
+        /// <summary>
+        /// Requeue a task if it was unable to be completed.
+        /// </summary>
+        /// <param name="database">Database instance.</param>
+        /// <param name="workflowName">Name of the workflow of the task to requeue.</param>
+        /// <param name="taskName">Name of the task to requeue.</param>
+        public static void Requeue(Database database, string workflowName, string taskName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
