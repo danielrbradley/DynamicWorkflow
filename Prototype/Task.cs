@@ -142,6 +142,7 @@ namespace DynamicWorkflow.Prototype
             var workflow = Workflow.Get(database, workflowName);
             var dependantOn = Task.Get(database, workflowName, nameDependantOn);
             var dependancyTo = Task.Get(database, workflowName, nameDependancyTo);
+            var dependancyToQueue = Queue.Get(database, dependancyTo.QueueId);
 
             workflow.WorkflowLock.EnterWriteLock();
             try
@@ -149,7 +150,20 @@ namespace DynamicWorkflow.Prototype
                 switch (dependancyTo.State)
                 {
                     case TaskState.AwaitDependence:
+                        break;
                     case TaskState.Queued:
+                        if (!workflow.Suspended)
+                        {
+                            dependancyToQueue.QueueLock.EnterWriteLock();
+                            try
+                            {
+                                dependancyToQueue.QueuedTasks.Remove(dependancyToQueue.QueuedTasks.First(t => t.Item2 == dependancyTo.Id));
+                            }
+                            finally
+                            {
+                                dependancyToQueue.QueueLock.ExitWriteLock();
+                            }
+                        }
                         break;
                     case TaskState.Running:
                     case TaskState.Completed:
@@ -158,6 +172,7 @@ namespace DynamicWorkflow.Prototype
                         throw new InvalidOperationException("Can only add dependancy to a task which has not yet been started.");
                 }
 
+                dependancyTo.State = TaskState.AwaitDependence;
                 dependantOn.DependencyTo.Add(dependancyTo.Id);
                 dependancyTo.DependantOn.Add(dependantOn.Id);
 

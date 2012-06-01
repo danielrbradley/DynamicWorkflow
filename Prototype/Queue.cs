@@ -373,5 +373,21 @@ namespace DynamicWorkflow.Prototype
                 database.QueuesLock.ExitReadLock();
             }
         }
+
+        internal static Queue Get(Database database, Guid guid)
+        {
+            if (database == null)
+                throw new ArgumentNullException("database", "database is null.");
+
+            database.QueuesLock.EnterReadLock();
+            try
+            {
+                return database.Queues[guid];
+            }
+            finally
+            {
+                database.QueuesLock.ExitReadLock();
+            }
+        }
     }
 }

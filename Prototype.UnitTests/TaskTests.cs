@@ -78,7 +78,7 @@ namespace DynamicWorkflow.Prototype.UnitTests
         }
 
         [TestMethod]
-        public void AddDependency()
+        public void AddDependencyInSuspension()
         {
             var dependancyTaskName = "Dependancy Task";
             CreateTaskInSuspension();
@@ -94,6 +94,27 @@ namespace DynamicWorkflow.Prototype.UnitTests
             Assert.AreEqual(0, dependancyTask.DependantOn.Count);
             Assert.AreEqual(1, dependancyTask.DependencyTo.Count);
             Assert.AreEqual(0, dependancyTask.OutstandingDependencies.Count);
+        }
+
+        [TestMethod]
+        public void AddDependency()
+        {
+            var dependancyTaskName = "Dependancy Task";
+            CreateTask();
+            Task.Create(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName, QueueTests.DefaultQueueName);
+            Task.AddDependency(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName, DefaultTaskName);
+            var defaultTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, DefaultTaskName);
+            var dependancyTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName);
+
+            Assert.AreEqual(1, defaultTask.DependantOn.Count);
+            Assert.AreEqual(0, defaultTask.DependencyTo.Count);
+            Assert.AreEqual(1, defaultTask.OutstandingDependencies.Count);
+
+            Assert.AreEqual(0, dependancyTask.DependantOn.Count);
+            Assert.AreEqual(1, dependancyTask.DependencyTo.Count);
+            Assert.AreEqual(0, dependancyTask.OutstandingDependencies.Count);
+
+            Assert.AreEqual(1, Queue.Get(database, QueueTests.DefaultQueueName).QueuedTasks.Count);
         }
     }
 }
