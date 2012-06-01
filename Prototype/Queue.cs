@@ -294,7 +294,7 @@ namespace DynamicWorkflow.Prototype
                             queue.RunningTasks.Remove(task.Id);
                             task.State = TaskState.Completed;
                             workflow.CompletedTasks.Add(task.Id);
-                            foreach (var nextTaskId in task.DependancyTo)
+                            foreach (var nextTaskId in task.DependencyTo)
                             {
                                 var nextTask = workflow.Tasks[nextTaskId];
                                 nextTask.OutstandingDependencies.Remove(task.Id);

@@ -16,7 +16,7 @@ namespace DynamicWorkflow.Prototype
             this.State = TaskState.Queued;
             this.OutstandingDependencies = new HashSet<Guid>();
             this.DependantOn = new HashSet<Guid>();
-            this.DependancyTo = new HashSet<Guid>();
+            this.DependencyTo = new HashSet<Guid>();
         }
 
         internal readonly Guid Id;
@@ -25,7 +25,7 @@ namespace DynamicWorkflow.Prototype
         internal readonly string Name;
         internal HashSet<Guid> OutstandingDependencies;
         internal HashSet<Guid> DependantOn;
-        internal HashSet<Guid> DependancyTo;
+        internal HashSet<Guid> DependencyTo;
 
         public static void Create(Database database, string workflowName, string name, string queueName)
         {
@@ -139,8 +139,41 @@ namespace DynamicWorkflow.Prototype
             if (workflowName == null)
                 throw new ArgumentNullException("nameDependancyTo", "nameDependancyTo is null.");
 
-            throw new NotImplementedException();
+            var workflow = Workflow.Get(database, workflowName);
+            var dependantOn = Task.Get(database, workflowName, nameDependantOn);
+            var dependancyTo = Task.Get(database, workflowName, nameDependancyTo);
 
+            workflow.WorkflowLock.EnterWriteLock();
+            try
+            {
+                switch (dependancyTo.State)
+                {
+                    case TaskState.AwaitDependence:
+                    case TaskState.Queued:
+                        break;
+                    case TaskState.Running:
+                    case TaskState.Completed:
+                    case TaskState.Failed:
+                    default:
+                        throw new InvalidOperationException("Can only add dependancy to a task which has not yet been started.");
+                }
+
+                dependantOn.DependencyTo.Add(dependancyTo.Id);
+                dependancyTo.DependantOn.Add(dependantOn.Id);
+
+                switch (dependantOn.State)
+                {
+                    case TaskState.AwaitDependence:
+                    case TaskState.Queued:
+                    case TaskState.Running:
+                        dependancyTo.OutstandingDependencies.Add(dependantOn.Id);
+                        break;
+                }
+            }
+            finally
+            {
+                workflow.WorkflowLock.ExitWriteLock();
+            }
         }
     }
 }
