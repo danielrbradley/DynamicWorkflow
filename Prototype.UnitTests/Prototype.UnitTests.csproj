@@ -48,6 +48,7 @@
     <Compile Include="QueueTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DatabaseTests.cs" />
+    <Compile Include="TaskTests.cs" />
     <Compile Include="WorkflowTests.cs" />
   </ItemGroup>
   <ItemGroup>
