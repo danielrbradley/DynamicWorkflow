@@ -48,9 +48,6 @@
     <Compile Include="TaskState.cs" />
     <Compile Include="Workflow.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="README.md" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildProjectDirectory)\..\Common.Cs.Targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
