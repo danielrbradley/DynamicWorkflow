@@ -246,7 +246,7 @@ namespace DynamicWorkflow.Prototype
                 try
                 {
                     // Validate state;
-                    if (queue.QueuedTasks.First().Item1 != taskId)
+                    if (queue.QueuedTasks.First().Item2 != taskId)
                         return null;
                     queue.QueuedTasks.RemoveFirst();
                     task.State = TaskState.Running;

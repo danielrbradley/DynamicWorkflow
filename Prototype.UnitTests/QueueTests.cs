@@ -64,13 +64,28 @@ namespace DynamicWorkflow.Prototype.UnitTests
         [TestMethod]
         public void PeekTask()
         {
-            var taskTests = new TaskTests(database);
-            taskTests.Initialise();
-            taskTests.CreateTask();
+            QueueDefaultTask();
             var nextTask = Queue.Peek(database, DefaultQueueName);
             Assert.IsNotNull(nextTask);
             Assert.AreEqual(WorkflowTests.DefaultWorkflowName, nextTask.WorkflowName);
             Assert.AreEqual(TaskTests.DefaultTaskName, nextTask.TaskName);
+        }
+
+        [TestMethod]
+        public void DequeueTask()
+        {
+            QueueDefaultTask();
+            var nextTask = Queue.Dequeue(database, DefaultQueueName);
+            Assert.IsNotNull(nextTask);
+            Assert.AreEqual(WorkflowTests.DefaultWorkflowName, nextTask.WorkflowName);
+            Assert.AreEqual(TaskTests.DefaultTaskName, nextTask.TaskName);
+        }
+
+        private void QueueDefaultTask()
+        {
+            var taskTests = new TaskTests(database);
+            taskTests.Initialise();
+            taskTests.CreateTask();
         }
     }
 }
