@@ -81,7 +81,7 @@ namespace DynamicWorkflow.Prototype
                             {
                                 workflow.Tasks.Add(task.Id, task);
                                 workflow.TaskNames.Add(task.Name, task.Id);
-                                queue.queuedTasks.AddLast(new LinkedListNode<Tuple<Guid, Guid>>(new Tuple<Guid, Guid>(workflow.Id, task.Id)));
+                                queue.QueuedTasks.AddLast(new LinkedListNode<Tuple<Guid, Guid>>(new Tuple<Guid, Guid>(workflow.Id, task.Id)));
                             }
                             finally
                             {

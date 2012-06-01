@@ -13,8 +13,8 @@ namespace DynamicWorkflow.Prototype
         {
             this.Id = Guid.NewGuid();
             this.Name = name;
-            this.queuedTasks = new LinkedList<Tuple<Guid, Guid>>();
-            this.runningTasks = new HashSet<Guid>();
+            this.QueuedTasks = new LinkedList<Tuple<Guid, Guid>>();
+            this.RunningTasks = new HashSet<Guid>();
             this.QueueLock = new ReaderWriterLockSlim();
         }
 
@@ -24,8 +24,8 @@ namespace DynamicWorkflow.Prototype
         /// <summary>
         /// Tuples of Workflow Id, TaskId
         /// </summary>
-        internal LinkedList<Tuple<Guid, Guid>> queuedTasks;
-        internal HashSet<Guid> runningTasks;
+        internal LinkedList<Tuple<Guid, Guid>> QueuedTasks;
+        internal HashSet<Guid> RunningTasks;
         internal readonly ReaderWriterLockSlim QueueLock;
 
         public static void Create(Database database, string name)
@@ -74,13 +74,13 @@ namespace DynamicWorkflow.Prototype
             queue.QueueLock.EnterWriteLock();
             try
             {
-                if (queue.queuedTasks.Any())
+                if (queue.QueuedTasks.Any())
                     throw new InvalidOperationException(string.Format("Failed deleting queue with name \"{0}\", queue is not empty.", name));
 
                 database.QueuesLock.EnterWriteLock();
                 try
                 {
-                    queue.queuedTasks = null;
+                    queue.QueuedTasks = null;
                     database.Queues.Remove(queue.Id);
                     database.QueueNames.Remove(queue.Name);
                 }
@@ -130,7 +130,7 @@ namespace DynamicWorkflow.Prototype
                 queue.QueueLock.EnterReadLock();
                 try
                 {
-                    return !queue.queuedTasks.Any();
+                    return !queue.QueuedTasks.Any();
                 }
                 finally
                 {
@@ -155,7 +155,7 @@ namespace DynamicWorkflow.Prototype
             Guid workflowId, taskId;
             try
             {
-                var first = queue.queuedTasks.First.Value;
+                var first = queue.QueuedTasks.First.Value;
                 workflowId = first.Item1;
                 taskId = first.Item2;
             }
@@ -207,7 +207,7 @@ namespace DynamicWorkflow.Prototype
             queue.QueueLock.EnterReadLock();
             try
             {
-                var first = queue.queuedTasks.First.Value;
+                var first = queue.QueuedTasks.First.Value;
                 workflowId = first.Item1;
                 taskId = first.Item2;
             }
@@ -242,9 +242,9 @@ namespace DynamicWorkflow.Prototype
                 try
                 {
                     // Validate state;
-                    if (queue.queuedTasks.First().Item1 != taskId)
+                    if (queue.QueuedTasks.First().Item1 != taskId)
                         return null;
-                    queue.queuedTasks.RemoveFirst();
+                    queue.QueuedTasks.RemoveFirst();
                     task.State = TaskState.Running;
                     return new QueueTask()
                     {
@@ -291,7 +291,7 @@ namespace DynamicWorkflow.Prototype
                         queue.QueueLock.EnterWriteLock();
                         try
                         {
-                            queue.runningTasks.Remove(task.Id);
+                            queue.RunningTasks.Remove(task.Id);
                             task.State = TaskState.Completed;
                             workflow.CompletedTasks.Add(task.Id);
                             foreach (var nextTaskId in task.DependancyTo)
@@ -305,7 +305,7 @@ namespace DynamicWorkflow.Prototype
                                     nextQueue.QueueLock.EnterWriteLock();
                                     try
                                     {
-                                        nextQueue.queuedTasks.AddLast(new LinkedListNode<Tuple<Guid, Guid>>(new Tuple<Guid, Guid>(workflow.Id, nextTask.Id)));
+                                        nextQueue.QueuedTasks.AddLast(new LinkedListNode<Tuple<Guid, Guid>>(new Tuple<Guid, Guid>(workflow.Id, nextTask.Id)));
                                     }
                                     finally
                                     {
