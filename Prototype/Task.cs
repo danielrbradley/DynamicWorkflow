@@ -55,7 +55,7 @@ namespace DynamicWorkflow.Prototype
             try
             {
                 workflow = database.Workflows[database.WorkflowNames[workflowName]];
-                if (workflow.IsSuspended)
+                if (workflow.Suspended)
                 {
                     workflow.WorkflowLock.EnterUpgradeableReadLock();
                     try

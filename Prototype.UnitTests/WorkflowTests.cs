@@ -26,7 +26,7 @@ namespace DynamicWorkflow.Prototype.UnitTests
             Assert.IsTrue(database.Workflows.ContainsKey(database.WorkflowNames[DefaultWorkflowName]));
             Assert.AreEqual(database.WorkflowNames[DefaultWorkflowName], database.Workflows[database.WorkflowNames[DefaultWorkflowName]].Id);
             Assert.AreEqual(DefaultWorkflowName, database.Workflows[database.WorkflowNames[DefaultWorkflowName]].Name);
-            Assert.IsTrue(database.Workflows[database.WorkflowNames[DefaultWorkflowName]].IsSuspended);
+            Assert.IsTrue(database.Workflows[database.WorkflowNames[DefaultWorkflowName]].Suspended);
             Assert.IsNotNull(database.Workflows[database.WorkflowNames[DefaultWorkflowName]].CompletedTasks);
             Assert.IsNotNull(database.Workflows[database.WorkflowNames[DefaultWorkflowName]].TaskNames);
             Assert.IsNotNull(database.Workflows[database.WorkflowNames[DefaultWorkflowName]].Tasks);
@@ -53,6 +53,28 @@ namespace DynamicWorkflow.Prototype.UnitTests
         {
             // Don't create default first.
             Assert.IsFalse(Workflow.Exists(database, DefaultWorkflowName));
+        }
+
+        [TestMethod]
+        public void IsSuspended()
+        {
+            CreateWorkflow();
+            Assert.IsTrue(Workflow.IsSuspended(database, DefaultWorkflowName));
+        }
+
+        [TestMethod]
+        public void IsNotSuspended()
+        {
+            ResumeSuspended();
+            Assert.IsFalse(Workflow.IsSuspended(database, DefaultWorkflowName));
+        }
+
+        [TestMethod]
+        public void ResumeSuspended()
+        {
+            CreateWorkflow();
+            Workflow.Resume(database, DefaultWorkflowName);
+            Assert.IsFalse(Workflow.Get(database, DefaultWorkflowName).Suspended);
         }
     }
 }
