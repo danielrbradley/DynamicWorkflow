@@ -293,9 +293,20 @@ namespace DynamicWorkflow.Prototype
                     {
                         task = workflow.Tasks[workflow.TaskNames[taskName]];
                         queue = database.Queues[task.QueueId];
-                        queue.QueueLock.EnterWriteLock();
+
+                        var queuesIdsToLock = task.DependencyTo.Select(taskId => workflow.Tasks[taskId].QueueId).ToList();
+                        queuesIdsToLock.Add(task.QueueId);
+                        queuesIdsToLock = queuesIdsToLock.OrderBy(id => id).Distinct().ToList();
+                        int queueLockCount = 0;
+
                         try
                         {
+                            foreach (var queueId in queuesIdsToLock)
+                            {
+                                database.Queues[queueId].QueueLock.EnterWriteLock();
+                                queueLockCount++;
+                            }
+
                             queue.RunningTasks.Remove(task.Id);
                             task.State = TaskState.Completed;
                             workflow.CompletedTasks.Add(task.Id);
@@ -307,15 +318,7 @@ namespace DynamicWorkflow.Prototype
                                 {
                                     nextTask.State = TaskState.Queued;
                                     var nextQueue = database.Queues[nextTask.QueueId];
-                                    nextQueue.QueueLock.EnterWriteLock();
-                                    try
-                                    {
-                                        nextQueue.QueuedTasks.AddLast(new LinkedListNode<Tuple<Guid, Guid>>(new Tuple<Guid, Guid>(workflow.Id, nextTask.Id)));
-                                    }
-                                    finally
-                                    {
-                                        nextQueue.QueueLock.ExitWriteLock();
-                                    }
+                                    nextQueue.QueuedTasks.AddLast(new LinkedListNode<Tuple<Guid, Guid>>(new Tuple<Guid, Guid>(workflow.Id, nextTask.Id)));
                                 }
                             }
 
@@ -335,7 +338,11 @@ namespace DynamicWorkflow.Prototype
                         }
                         finally
                         {
-                            queue.QueueLock.ExitWriteLock();
+                            // Release all taken locks in order taken.
+                            for (int i = queueLockCount - 1; i >= 0; i--)
+                            {
+                                database.Queues[queuesIdsToLock[i]].QueueLock.ExitWriteLock();
+                            }
                         }
                     }
                     finally
