@@ -143,7 +143,7 @@ namespace DynamicWorkflow.Prototype
             }
         }
 
-        public static QueueTask GetNextTask(Database database, string queueName)
+        public static QueueTask Peek(Database database, string queueName)
         {
             if (database == null)
                 throw new ArgumentNullException("database", "database is null.");
@@ -188,7 +188,7 @@ namespace DynamicWorkflow.Prototype
             }
         }
 
-        public static QueueTask DequeueTask(Database database, string queueName)
+        public static QueueTask Dequeue(Database database, string queueName)
         {
             if (database == null)
                 throw new ArgumentNullException("database", "database is null.");
@@ -263,7 +263,7 @@ namespace DynamicWorkflow.Prototype
             }
         }
 
-        public static void CompleteTask(Database database, string workflowName, string taskName)
+        public static void Complete(Database database, string workflowName, string taskName)
         {
             if (database == null)
                 throw new ArgumentNullException("database", "database is null.");
