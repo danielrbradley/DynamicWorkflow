@@ -84,6 +84,18 @@ namespace DynamicWorkflow.Prototype.UnitTests
             Assert.AreEqual(TaskState.Running, Task.Get(database, WorkflowTests.DefaultWorkflowName, TaskTests.DefaultTaskName).State);
         }
 
+        [TestMethod]
+        public void CompleteTask()
+        {
+            QueueDefaultTask();
+            var dequeuedTask = Queue.Dequeue(database, DefaultQueueName);
+            Queue.Complete(database, dequeuedTask.WorkflowName, dequeuedTask.TaskName);
+            var queue = Queue.Get(database, DefaultQueueName);
+            Assert.AreEqual(0, queue.RunningTasks.Count);
+            Assert.AreEqual(0, queue.QueuedTasks.Count);
+            Assert.IsFalse(Workflow.Exists(database, WorkflowTests.DefaultWorkflowName));
+        }
+
         private void QueueDefaultTask()
         {
             var taskTests = new TaskTests(database);
