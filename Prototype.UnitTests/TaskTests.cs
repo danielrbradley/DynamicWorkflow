@@ -10,6 +10,7 @@ namespace DynamicWorkflow.Prototype.UnitTests
     public class TaskTests
     {
         public const string DefaultTaskName = "Test Task";
+        public const string DependencyTaskName = "Dependency Task";
         private Workflow defaultWorkflow;
         private Queue defaultQueue;
         private Database database;
@@ -80,12 +81,11 @@ namespace DynamicWorkflow.Prototype.UnitTests
         [TestMethod]
         public void AddDependencyInSuspension()
         {
-            var dependancyTaskName = "Dependancy Task";
             CreateTaskInSuspension();
-            Task.Create(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName, QueueTests.DefaultQueueName);
-            Task.AddDependency(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName, DefaultTaskName);
+            Task.Create(database, WorkflowTests.DefaultWorkflowName, DependencyTaskName, QueueTests.DefaultQueueName);
+            Task.AddDependency(database, WorkflowTests.DefaultWorkflowName, DependencyTaskName, DefaultTaskName);
             var defaultTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, DefaultTaskName);
-            var dependancyTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName);
+            var dependancyTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, DependencyTaskName);
 
             Assert.AreEqual(1, defaultTask.DependantOn.Count);
             Assert.AreEqual(0, defaultTask.DependencyTo.Count);
@@ -99,12 +99,11 @@ namespace DynamicWorkflow.Prototype.UnitTests
         [TestMethod]
         public void AddDependency()
         {
-            var dependancyTaskName = "Dependancy Task";
             CreateTask();
-            Task.Create(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName, QueueTests.DefaultQueueName);
-            Task.AddDependency(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName, DefaultTaskName);
+            Task.Create(database, WorkflowTests.DefaultWorkflowName, DependencyTaskName, QueueTests.DefaultQueueName);
+            Task.AddDependency(database, WorkflowTests.DefaultWorkflowName, DependencyTaskName, DefaultTaskName);
             var defaultTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, DefaultTaskName);
-            var dependancyTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName);
+            var dependancyTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, DependencyTaskName);
 
             Assert.AreEqual(1, defaultTask.DependantOn.Count);
             Assert.AreEqual(0, defaultTask.DependencyTo.Count);

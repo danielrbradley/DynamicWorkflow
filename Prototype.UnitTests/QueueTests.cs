@@ -107,6 +107,8 @@ namespace DynamicWorkflow.Prototype.UnitTests
             var queue = Queue.Get(database, DefaultQueueName);
             Assert.AreEqual(0, queue.RunningTasks.Count);
             Assert.AreEqual(1, queue.QueuedTasks.Count);
+            Assert.AreEqual(TaskState.Completed, Task.Get(database, dequeuedTask.WorkflowName, dequeuedTask.TaskName).State);
+            Assert.AreEqual(TaskState.Queued, Task.Get(database, WorkflowTests.DefaultWorkflowName, TaskTests.DefaultTaskName).State);
         }
 
         private void QueueDefaultTask()
