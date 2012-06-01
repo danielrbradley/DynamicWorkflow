@@ -37,16 +37,24 @@ namespace DynamicWorkflow.Prototype
             if (Exists(database, name))
                 throw new ArgumentException(string.Format("Queue with the name \"{0}\" already exists.", name), "name");
 
-            var workflow = new Queue(name);
-            database.QueuesLock.EnterWriteLock();
+            var queue = new Queue(name);
+            queue.QueueLock.EnterWriteLock();
             try
             {
-                database.QueueNames.Add(workflow.Name, workflow.Id);
-                database.Queues.Add(workflow.Id, workflow);
+                database.QueuesLock.EnterWriteLock();
+                try
+                {
+                    database.QueueNames.Add(queue.Name, queue.Id);
+                    database.Queues.Add(queue.Id, queue);
+                }
+                finally
+                {
+                    database.QueuesLock.ExitWriteLock();
+                }
             }
             finally
             {
-                database.QueuesLock.ExitWriteLock();
+                queue.QueueLock.ExitWriteLock();
             }
         }
 
