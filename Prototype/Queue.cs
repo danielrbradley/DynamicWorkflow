@@ -150,11 +150,15 @@ namespace DynamicWorkflow.Prototype
             if (queueName == null)
                 throw new ArgumentNullException("queueName", "queueName is null.");
 
-            var queue = Queue.Get(database, queueName);
-            queue.QueueLock.EnterReadLock();
             Guid workflowId, taskId;
+            var queue = Queue.Get(database, queueName);
+
+            queue.QueueLock.EnterReadLock();
             try
             {
+                if (queue.QueuedTasks.Count == 0)
+                    return null;
+
                 var first = queue.QueuedTasks.First.Value;
                 workflowId = first.Item1;
                 taskId = first.Item2;

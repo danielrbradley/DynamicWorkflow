@@ -9,27 +9,37 @@ namespace DynamicWorkflow.Prototype.UnitTests
     [TestClass]
     public class TaskTests
     {
-        public const string DefaultWorkflowName = "Test Workflow";
         public const string DefaultTaskName = "Test Task";
-        public const string DefaultQueueName = "Test Queue";
         private Workflow defaultWorkflow;
         private Queue defaultQueue;
         private Database database;
 
+        public TaskTests()
+        {
+                this.database = new Database();
+        }
+
+        public TaskTests(Database database)
+        {
+            if (database == null)
+                this.database = new Database();
+            else
+                this.database = database;
+        }
+
         [TestInitialize]
         public void Initialise()
         {
-            this.database = new Database();
-            Workflow.Create(database, DefaultWorkflowName);
-            Queue.Create(database, DefaultQueueName);
-            defaultWorkflow = Workflow.Get(database, DefaultWorkflowName);
-            defaultQueue = Queue.Get(database, DefaultQueueName);
+            Workflow.Create(database, WorkflowTests.DefaultWorkflowName);
+            Queue.Create(database, QueueTests.DefaultQueueName);
+            defaultWorkflow = Workflow.Get(database, WorkflowTests.DefaultWorkflowName);
+            defaultQueue = Queue.Get(database, QueueTests.DefaultQueueName);
         }
 
         [TestMethod]
         public void CreateTaskInSuspension()
         {
-            Task.Create(database, DefaultWorkflowName, DefaultTaskName, DefaultQueueName);
+            Task.Create(database, WorkflowTests.DefaultWorkflowName, DefaultTaskName, QueueTests.DefaultQueueName);
             Assert.IsTrue(defaultWorkflow.TaskNames.ContainsKey(DefaultTaskName));
             Assert.IsTrue(defaultWorkflow.Tasks.ContainsKey(defaultWorkflow.TaskNames[DefaultTaskName]));
             Assert.AreEqual(0, defaultQueue.QueuedTasks.Count);
@@ -45,8 +55,8 @@ namespace DynamicWorkflow.Prototype.UnitTests
         [TestMethod]
         public void CreateTask()
         {
-            Workflow.Resume(database, DefaultWorkflowName);
-            Task.Create(database, DefaultWorkflowName, DefaultTaskName, DefaultQueueName);
+            Workflow.Resume(database, WorkflowTests.DefaultWorkflowName);
+            Task.Create(database, WorkflowTests.DefaultWorkflowName, DefaultTaskName, QueueTests.DefaultQueueName);
             Assert.IsTrue(defaultWorkflow.TaskNames.ContainsKey(DefaultTaskName));
             Assert.IsTrue(defaultWorkflow.Tasks.ContainsKey(defaultWorkflow.TaskNames[DefaultTaskName]));
             Assert.AreEqual(1, defaultQueue.QueuedTasks.Count);
@@ -63,7 +73,7 @@ namespace DynamicWorkflow.Prototype.UnitTests
         public void GetTask()
         {
             CreateTaskInSuspension();
-            var task = Task.Get(database, DefaultWorkflowName, DefaultTaskName);
+            var task = Task.Get(database, WorkflowTests.DefaultWorkflowName, DefaultTaskName);
             Assert.AreEqual(DefaultTaskName, task.Name);
         }
 
@@ -72,10 +82,10 @@ namespace DynamicWorkflow.Prototype.UnitTests
         {
             var dependancyTaskName = "Dependancy Task";
             CreateTaskInSuspension();
-            Task.Create(database, DefaultWorkflowName, dependancyTaskName, DefaultQueueName);
-            Task.AddDependency(database, DefaultWorkflowName, dependancyTaskName, DefaultTaskName);
-            var defaultTask = Task.Get(database, DefaultWorkflowName, DefaultTaskName);
-            var dependancyTask = Task.Get(database, DefaultWorkflowName, dependancyTaskName);
+            Task.Create(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName, QueueTests.DefaultQueueName);
+            Task.AddDependency(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName, DefaultTaskName);
+            var defaultTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, DefaultTaskName);
+            var dependancyTask = Task.Get(database, WorkflowTests.DefaultWorkflowName, dependancyTaskName);
 
             Assert.AreEqual(1, defaultTask.DependantOn.Count);
             Assert.AreEqual(0, defaultTask.DependencyTo.Count);

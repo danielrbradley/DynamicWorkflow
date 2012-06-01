@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DynamicWorkflow.Prototype;
 
-namespace DynamicQueue.Prototype.UnitTests
+namespace DynamicWorkflow.Prototype.UnitTests
 {
     [TestClass]
     public class QueueTests
@@ -52,6 +52,25 @@ namespace DynamicQueue.Prototype.UnitTests
         {
             // Don't create default first.
             Assert.IsFalse(Queue.Exists(database, DefaultQueueName));
+        }
+
+        [TestMethod]
+        public void PeekEmpty()
+        {
+            CreateQueue();
+            Assert.IsNull(Queue.Peek(database, DefaultQueueName));
+        }
+
+        [TestMethod]
+        public void PeekTask()
+        {
+            var taskTests = new TaskTests(database);
+            taskTests.Initialise();
+            taskTests.CreateTask();
+            var nextTask = Queue.Peek(database, DefaultQueueName);
+            Assert.IsNotNull(nextTask);
+            Assert.AreEqual(WorkflowTests.DefaultWorkflowName, nextTask.WorkflowName);
+            Assert.AreEqual(TaskTests.DefaultTaskName, nextTask.TaskName);
         }
     }
 }
