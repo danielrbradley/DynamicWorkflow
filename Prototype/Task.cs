@@ -38,9 +38,18 @@ namespace DynamicWorkflow.Prototype
             if (queueName == null)
                 throw new ArgumentNullException("queueName", "queueName is null.");
 
-            Workflow workflow;
+            Task task;
+            var workflow = Workflow.Get(database, workflowName);
             var queue = Queue.Get(database, queueName);
-            var task = new Task(name, queue.Id);
+            queue.QueueLock.EnterReadLock();
+            try
+            {
+                task = new Task(name, queue.Id);
+            }
+            finally
+            {
+                queue.QueueLock.ExitReadLock();
+            }
 
             database.WorkflowsLock.EnterReadLock();
             try
@@ -48,7 +57,7 @@ namespace DynamicWorkflow.Prototype
                 workflow = database.Workflows[database.WorkflowNames[workflowName]];
                 if (workflow.IsSuspended)
                 {
-                    workflow.WorkflowLock.EnterWriteLock();
+                    workflow.WorkflowLock.EnterUpgradeableReadLock();
                     try
                     {
                         workflow.Tasks.Add(task.Id, task);
@@ -56,7 +65,7 @@ namespace DynamicWorkflow.Prototype
                     }
                     finally
                     {
-                        workflow.WorkflowLock.ExitWriteLock();
+                        workflow.WorkflowLock.ExitUpgradeableReadLock();
                     }
                 }
                 else
@@ -64,7 +73,7 @@ namespace DynamicWorkflow.Prototype
                     database.QueuesLock.EnterReadLock();
                     try
                     {
-                        workflow.WorkflowLock.EnterWriteLock();
+                        workflow.WorkflowLock.EnterUpgradeableReadLock();
                         try
                         {
                             queue.QueueLock.EnterWriteLock();
@@ -81,7 +90,7 @@ namespace DynamicWorkflow.Prototype
                         }
                         finally
                         {
-                            workflow.WorkflowLock.ExitWriteLock();
+                            workflow.WorkflowLock.ExitUpgradeableReadLock();
                         }
                     }
                     finally
