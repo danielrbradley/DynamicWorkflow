@@ -79,6 +79,9 @@ namespace DynamicWorkflow.Prototype.UnitTests
             Assert.IsNotNull(nextTask);
             Assert.AreEqual(WorkflowTests.DefaultWorkflowName, nextTask.WorkflowName);
             Assert.AreEqual(TaskTests.DefaultTaskName, nextTask.TaskName);
+            Assert.IsTrue(Queue.IsEmpty(database, DefaultQueueName));
+            Assert.AreEqual(1, Queue.Get(database, DefaultQueueName).RunningTasks.Count);
+            Assert.AreEqual(TaskState.Running, Task.Get(database, WorkflowTests.DefaultWorkflowName, TaskTests.DefaultTaskName).State);
         }
 
         private void QueueDefaultTask()

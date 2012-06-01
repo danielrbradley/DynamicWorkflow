@@ -249,6 +249,7 @@ namespace DynamicWorkflow.Prototype
                     if (queue.QueuedTasks.First().Item2 != taskId)
                         return null;
                     queue.QueuedTasks.RemoveFirst();
+                    queue.RunningTasks.Add(taskId);
                     task.State = TaskState.Running;
                     return new QueueTask()
                     {
