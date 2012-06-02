@@ -54,6 +54,8 @@ namespace DynamicWorkflow.Prototype
             database.WorkflowsLock.EnterReadLock();
             try
             {
+                if (!database.WorkflowNames.ContainsKey(workflowName))
+                    throw new Exception(string.Format("Workflow with the name \"{0}\" not found.", workflowName));
                 workflow = database.Workflows[database.WorkflowNames[workflowName]];
                 if (workflow.Suspended)
                 {

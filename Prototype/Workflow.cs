@@ -38,10 +38,10 @@ namespace DynamicWorkflow.Prototype
                 throw new ArgumentException(string.Format("Workflow with the name \"{0}\" already exists.", name), "name");
 
             var workflow = new Workflow(name);
-            workflow.WorkflowLock.EnterWriteLock();
+            database.WorkflowsLock.EnterWriteLock();
             try
             {
-                database.WorkflowsLock.EnterWriteLock();
+                workflow.WorkflowLock.EnterWriteLock();
                 try
                 {
                     database.WorkflowNames.Add(workflow.Name, workflow.Id);
@@ -49,12 +49,12 @@ namespace DynamicWorkflow.Prototype
                 }
                 finally
                 {
-                    database.WorkflowsLock.ExitWriteLock();
+                    workflow.WorkflowLock.ExitWriteLock();
                 }
             }
             finally
             {
-                workflow.WorkflowLock.ExitWriteLock();
+                database.WorkflowsLock.ExitWriteLock();
             }
         }
 

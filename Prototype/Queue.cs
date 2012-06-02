@@ -171,6 +171,8 @@ namespace DynamicWorkflow.Prototype
             database.WorkflowsLock.EnterReadLock();
             try
             {
+                if (!database.Workflows.ContainsKey(workflowId))
+                    return null;
                 var workflow = database.Workflows[workflowId];
                 workflow.WorkflowLock.EnterReadLock();
                 try
@@ -211,6 +213,8 @@ namespace DynamicWorkflow.Prototype
             queue.QueueLock.EnterReadLock();
             try
             {
+                if (queue.QueuedTasks.Count == 0)
+                    return null;
                 var first = queue.QueuedTasks.First.Value;
                 workflowId = first.Item1;
                 taskId = first.Item2;
@@ -223,6 +227,8 @@ namespace DynamicWorkflow.Prototype
             database.WorkflowsLock.EnterReadLock();
             try
             {
+                if (!database.Workflows.ContainsKey(workflowId))
+                    return null;
                 workflow = database.Workflows[workflowId];
                 workflow.WorkflowLock.EnterReadLock();
                 try
@@ -246,6 +252,8 @@ namespace DynamicWorkflow.Prototype
                 try
                 {
                     // Validate state;
+                    if (queue.QueuedTasks.Count == 0)
+                        return null;
                     if (queue.QueuedTasks.First().Item2 != taskId)
                         return null;
                     queue.QueuedTasks.RemoveFirst();
@@ -281,7 +289,7 @@ namespace DynamicWorkflow.Prototype
             Task task;
             Queue queue;
 
-            database.WorkflowsLock.EnterUpgradeableReadLock();
+            database.WorkflowsLock.EnterWriteLock();
             try
             {
                 database.QueuesLock.EnterReadLock();
@@ -324,16 +332,8 @@ namespace DynamicWorkflow.Prototype
 
                             if (workflow.CompletedTasks.Count == workflow.Tasks.Count)
                             {
-                                database.WorkflowsLock.EnterWriteLock();
-                                try
-                                {
-                                    database.WorkflowNames.Remove(workflow.Name);
-                                    database.Workflows.Remove(workflow.Id);
-                                }
-                                finally
-                                {
-                                    database.WorkflowsLock.ExitWriteLock();
-                                }
+                                database.WorkflowNames.Remove(workflow.Name);
+                                database.Workflows.Remove(workflow.Id);
                             }
                         }
                         finally
@@ -357,7 +357,7 @@ namespace DynamicWorkflow.Prototype
             }
             finally
             {
-                database.WorkflowsLock.ExitUpgradeableReadLock();
+                database.WorkflowsLock.ExitWriteLock();
             }
         }
 
