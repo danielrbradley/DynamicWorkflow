@@ -407,5 +407,45 @@ namespace DynamicWorkflow.Prototype
         {
             throw new NotImplementedException();
         }
+
+        public static int RunningCount(Database database, string name)
+        {
+            if (database == null)
+                throw new ArgumentNullException("database", "database is null.");
+            if (name == null)
+                throw new ArgumentNullException("name", "name is null.");
+
+            var queue = Get(database, name);
+
+            queue.QueueLock.EnterReadLock();
+            try
+            {
+                return queue.RunningTasks.Count;
+            }
+            finally
+            {
+                queue.QueueLock.ExitReadLock();
+            }
+        }
+
+        public static int QueuedCount(Database database, string name)
+        {
+            if (database == null)
+                throw new ArgumentNullException("database", "database is null.");
+            if (name == null)
+                throw new ArgumentNullException("name", "name is null.");
+
+            var queue = Get(database, name);
+
+            queue.QueueLock.EnterReadLock();
+            try
+            {
+                return queue.QueuedTasks.Count;
+            }
+            finally
+            {
+                queue.QueueLock.ExitReadLock();
+            }
+        }
     }
 }

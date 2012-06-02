@@ -49,6 +49,12 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Prototype\Prototype.csproj">
+      <Project>{E3078F5B-ECC7-4196-9E48-D554F401796E}</Project>
+      <Name>Prototype</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildProjectDirectory)\..\Common.Cs.Targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
