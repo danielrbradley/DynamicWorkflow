@@ -13,16 +13,16 @@ namespace DynamicWorkflow.Demo
         private static IList<string> queueNames;
         private static int WorkflowsCreated = 0;
         private static int TasksCompleted = 0;
-        const int QueueProcessors = 50;
+        const int QueueProcessors = 10;
         const int QueueCount = 5;
         const int WorkflowTaskCount = 5;
-        const int WorkflowCreators = 30;
-        private static TimeSpan QueueCheckFrequency = TimeSpan.FromMilliseconds(20);
-        private static TimeSpan QueueCheckFrequencyVariance = TimeSpan.FromMilliseconds(5);
-        private static TimeSpan TaskCompletionTime = TimeSpan.FromMilliseconds(40);
-        private static TimeSpan TaskCompletionTimeVariance = TimeSpan.FromMilliseconds(10);
-        private static TimeSpan WorkflowCreationFrequency = TimeSpan.FromMilliseconds(40);
-        private static TimeSpan WorkflowCreationFrequencyVariance = TimeSpan.FromMilliseconds(5);
+        const int WorkflowCreators = 6;
+        private static TimeSpan QueueCheckFrequency = TimeSpan.FromMilliseconds(1);
+        private static TimeSpan QueueCheckFrequencyVariance = TimeSpan.FromMilliseconds(1);
+        private static TimeSpan TaskCompletionTime = TimeSpan.FromMilliseconds(1);
+        private static TimeSpan TaskCompletionTimeVariance = TimeSpan.FromMilliseconds(1);
+        private static TimeSpan WorkflowCreationFrequency = TimeSpan.FromMilliseconds(30);
+        private static TimeSpan WorkflowCreationFrequencyVariance = TimeSpan.FromMilliseconds(1);
         private static Database database;
         private static bool stopping = false;
 
@@ -57,7 +57,7 @@ namespace DynamicWorkflow.Demo
                     {
                         case ConsoleKey.DownArrow:
                             // Decrease process time.
-                            if (TaskCompletionTime.TotalMilliseconds > 1)
+                            if (TaskCompletionTime.TotalMilliseconds >= 1)
                                 TaskCompletionTime = TaskCompletionTime.Add(TimeSpan.FromMilliseconds(-1));
                             break;
                         case ConsoleKey.UpArrow:
@@ -66,12 +66,12 @@ namespace DynamicWorkflow.Demo
                             break;
                         case ConsoleKey.LeftArrow:
                             // Decrease rate of queuing.
-                            WorkflowCreationFrequency = WorkflowCreationFrequency.Add(TimeSpan.FromMilliseconds(5));
+                            WorkflowCreationFrequency = WorkflowCreationFrequency.Add(TimeSpan.FromMilliseconds(1));
                             break;
                         case ConsoleKey.RightArrow:
                             // Increase rate of queuing.
-                            if (WorkflowCreationFrequency.TotalMilliseconds > 10)
-                                WorkflowCreationFrequency = WorkflowCreationFrequency.Add(TimeSpan.FromMilliseconds(-5));
+                            if (WorkflowCreationFrequency.TotalMilliseconds >= 1)
+                                WorkflowCreationFrequency = WorkflowCreationFrequency.Add(TimeSpan.FromMilliseconds(-1));
                             break;
                         case ConsoleKey.OemComma:
                             // < - Decrease check frequency.
@@ -79,7 +79,7 @@ namespace DynamicWorkflow.Demo
                             break;
                         case ConsoleKey.OemPeriod:
                             // > - Increase check frequency.
-                            if (QueueCheckFrequency.TotalMilliseconds > 1)
+                            if (QueueCheckFrequency.TotalMilliseconds >= 1)
                                 QueueCheckFrequency = QueueCheckFrequency.Add(TimeSpan.FromMilliseconds(-1));
                             break;
                         case ConsoleKey.X:
