@@ -288,8 +288,9 @@ namespace DynamicWorkflow.Prototype
             Workflow workflow;
             Task task;
             Queue queue;
+            bool workflowCompleted = false;
 
-            database.WorkflowsLock.EnterWriteLock();
+            database.WorkflowsLock.EnterReadLock();
             try
             {
                 database.QueuesLock.EnterReadLock();
@@ -332,8 +333,7 @@ namespace DynamicWorkflow.Prototype
 
                             if (workflow.CompletedTasks.Count == workflow.Tasks.Count)
                             {
-                                database.WorkflowNames.Remove(workflow.Name);
-                                database.Workflows.Remove(workflow.Id);
+                                workflowCompleted = true;
                             }
                         }
                         finally
@@ -357,7 +357,21 @@ namespace DynamicWorkflow.Prototype
             }
             finally
             {
-                database.WorkflowsLock.ExitWriteLock();
+                database.WorkflowsLock.ExitReadLock();
+            }
+
+            if (workflowCompleted)
+            {
+                database.WorkflowsLock.EnterWriteLock();
+                try
+                {
+                    database.WorkflowNames.Remove(workflow.Name);
+                    database.Workflows.Remove(workflow.Id);
+                }
+                finally
+                {
+                    database.WorkflowsLock.ExitWriteLock();
+                }
             }
         }
 
