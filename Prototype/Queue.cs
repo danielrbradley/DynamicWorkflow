@@ -21,6 +21,8 @@ namespace DynamicWorkflow.Prototype
         internal readonly Guid Id;
         internal readonly string Name;
 
+        public const short MAX_DEQUEUE_ATTEMPTS = 5;
+
         /// <summary>
         /// Tuples of Workflow Id, TaskId
         /// </summary>
@@ -209,27 +211,26 @@ namespace DynamicWorkflow.Prototype
             Queue queue;
             Guid workflowId, taskId;
 
-            queue = Queue.Get(database, queueName);
-            queue.QueueLock.EnterReadLock();
-            try
+            for (int attemptNum = 0; attemptNum < MAX_DEQUEUE_ATTEMPTS; attemptNum++)
             {
-                if (queue.QueuedTasks.Count == 0)
-                    return null;
-                var first = queue.QueuedTasks.First.Value;
-                workflowId = first.Item1;
-                taskId = first.Item2;
-            }
-            finally
-            {
-                queue.QueueLock.ExitReadLock();
-            }
+                queue = Queue.Get(database, queueName);
+                queue.QueueLock.EnterReadLock();
+                try
+                {
+                    if (queue.QueuedTasks.Count == 0)
+                        return null;
+                    var first = queue.QueuedTasks.First.Value;
+                    workflowId = first.Item1;
+                    taskId = first.Item2;
+                }
+                finally
+                {
+                    queue.QueueLock.ExitReadLock();
+                }
 
-            database.WorkflowsLock.EnterReadLock();
-            try
-            {
-                if (!database.Workflows.ContainsKey(workflowId))
-                    return null;
-                workflow = database.Workflows[workflowId];
+                workflow = Workflow.Get(database, workflowId);
+                if (workflow == null)
+                    continue;
                 workflow.WorkflowLock.EnterReadLock();
                 try
                 {
@@ -239,41 +240,38 @@ namespace DynamicWorkflow.Prototype
                 {
                     workflow.WorkflowLock.ExitReadLock();
                 }
-            }
-            finally
-            {
-                database.WorkflowsLock.ExitReadLock();
-            }
 
-            workflow.WorkflowLock.EnterWriteLock();
-            try
-            {
-                queue.QueueLock.EnterWriteLock();
+                workflow.WorkflowLock.EnterWriteLock();
                 try
                 {
-                    // Validate state;
-                    if (queue.QueuedTasks.Count == 0)
-                        return null;
-                    if (queue.QueuedTasks.First().Item2 != taskId)
-                        return null;
-                    queue.QueuedTasks.RemoveFirst();
-                    queue.RunningTasks.Add(taskId);
-                    task.State = TaskState.Running;
-                    return new QueueTask()
+                    queue.QueueLock.EnterWriteLock();
+                    try
                     {
-                        WorkflowName = workflow.Name,
-                        TaskName = task.Name,
-                    };
+                        // Validate state;
+                        if (queue.QueuedTasks.Count == 0)
+                            return null;
+                        if (queue.QueuedTasks.First().Item2 != taskId)
+                            continue;
+                        queue.QueuedTasks.RemoveFirst();
+                        queue.RunningTasks.Add(taskId);
+                        task.State = TaskState.Running;
+                        return new QueueTask()
+                        {
+                            WorkflowName = workflow.Name,
+                            TaskName = task.Name,
+                        };
+                    }
+                    finally
+                    {
+                        queue.QueueLock.ExitWriteLock();
+                    }
                 }
                 finally
                 {
-                    queue.QueueLock.ExitWriteLock();
+                    workflow.WorkflowLock.ExitWriteLock();
                 }
             }
-            finally
-            {
-                workflow.WorkflowLock.ExitWriteLock();
-            }
+            return null;
         }
 
         public static void Complete(Database database, string workflowName, string taskName)

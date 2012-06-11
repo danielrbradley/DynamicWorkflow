@@ -115,6 +115,26 @@ namespace DynamicWorkflow.Prototype
             }
         }
 
+        internal static Workflow Get(Database database, Guid id)
+        {
+            if (database == null)
+                throw new ArgumentNullException("database", "database is null.");
+            if (id == Guid.Empty)
+                throw new ArgumentException("id", "id is empty.");
+
+            database.WorkflowsLock.EnterReadLock();
+            try
+            {
+                if (!database.Workflows.ContainsKey(id))
+                    return null;
+                return database.Workflows[id];
+            }
+            finally
+            {
+                database.WorkflowsLock.ExitReadLock();
+            }
+        }
+
         public static void Resume(Database database, string name)
         {
             if (database == null)
