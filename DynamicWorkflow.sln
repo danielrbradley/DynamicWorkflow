@@ -20,7 +20,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{D74CC2CF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{803E1E1B-1563-4CEC-9CCD-D9D44F450B20}"
 	ProjectSection(SolutionItems) = preProject
+		Locks.md = Locks.md
 		README.md = README.md
+		Tasks.md = Tasks.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{F19E1159-DA2C-4F35-B22A-FE5E101D6F30}"
